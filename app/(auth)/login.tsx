@@ -52,7 +52,7 @@ export default function Login() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: '#f5f5f5' },
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: '#f5f5f5', color: 'black' },
   logoContainer: {
     alignItems: 'center',
     marginBottom: 40,
@@ -64,5 +64,5 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   title: { fontSize: 24, fontWeight: '600', marginBottom: 24, color: '#333' },
-  input: { width: '100%', borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, marginBottom: 12 },
+  input: { width: '100%', borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, marginBottom: 12, color: '#000' },
 });

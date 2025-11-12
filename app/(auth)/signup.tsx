@@ -365,6 +365,7 @@ const styles = StyleSheet.create({
     padding: 14, 
     marginBottom: 12,
     fontSize: 16,
+    color: '#000', 
   },
   halfInput: {
     flex: 1,
@@ -461,4 +462,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
+  
 });

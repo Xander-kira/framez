@@ -24,9 +24,10 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "permissions": ["android.permission.RECORD_AUDIO"],
-      "package": "com.xanderkira.framez",
-      "versionCode": 1
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.xanderkira.framez"
     },
     "web": {
       "output": "static",
