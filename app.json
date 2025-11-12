@@ -9,7 +9,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.xanderkira.framez",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +23,10 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": ["android.permission.RECORD_AUDIO"],
+      "package": "com.xanderkira.framez",
+      "versionCode": 1
     },
     "web": {
       "output": "static",
@@ -38,11 +45,29 @@
             "backgroundColor": "#000000"
           }
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Framez to access your photos."
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "updates": {
+      "enabled": false,
+      "fallbackToCacheTimeout": 0,
+      "checkAutomatically": "NEVER",
+      "url": ""
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ba6401f3-045c-404c-a417-74a82d3d49cf"
+      }
     }
   }
 }
