@@ -222,3 +222,46 @@ This project is part of the HNG Internship program.
 - HNG Internship for the opportunity
 - Supabase for the amazing backend platform
 - Expo team for the excellent development experience
+
+# Framez 📱
+
+**Framez** is a mobile social media app built with **React Native (Expo)** and **Supabase**.  
+It allows users to sign up, log in, create posts (text and images), and view a global feed of posts.  
+Each user also has a personal profile displaying their posts and info.
+
+---
+
+## 🚀 Tech Stack
+- **Frontend:** React Native (Expo + Expo Router)
+- **Backend:** Supabase (Auth, Database, Storage, Realtime)
+- **Build Tool:** EAS Build (Android)
+- **State Management:** React Context
+- **Hosting / Demo:** [Appetize.io](https://appetize.io)
+
+---
+
+## ✨ Core Features
+✅ Email/password authentication (sign up, login, logout)  
+✅ Persistent sessions (user stays logged in)  
+✅ Create posts (text + optional image)  
+✅ Feed showing all users’ posts (latest first)  
+✅ Profile page (user info + posts)  
+✅ Smooth navigation and responsive layout  
+✅ Android build ready via Expo EAS  
+
+---
+
+## 🔗 Live Demo
+👉 **[Run on Appetize (Android)](https://appetize.io/app/b_xilvvwogibyqqaiiozum7b7kzu)**  
+
+**Embedded preview:**  
+[https://appetize.io/embed/b_xilvvwogibyqqaiiozum7b7kzu](https://appetize.io/embed/b_xilvvwogibyqqaiiozum7b7kzu)
+
+---
+
+## 🛠️ Setup Instructions
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/Xander-kira/framez
+   cd framez
+
