@@ -10,7 +10,12 @@
     },
     "preview": {
       "distribution": "internal",
-      "android": { "buildType": "apk" }
+      "android": { "buildType": "apk" },
+      "node": "20.11.1",
+      "env": {
+        "HUSKY": "0",
+        "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
+      }
     },
     "production": {
       "autoIncrement": true,
