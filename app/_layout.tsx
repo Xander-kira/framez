@@ -1,11 +1,15 @@
-import { Stack } from 'expo-router';
-import React from 'react';
-import { AuthProvider } from '../context/AuthProvider';
+import { Stack } from "expo-router";
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <Stack screenOptions={{ headerShown: false }} />
-    </AuthProvider>
+    <Stack>
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      {/* hide header for auth group */}
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      {/* hide header for app group */}
+      <Stack.Screen name="(app)" options={{ headerShown: false }} />
+      {/* your other routes */}
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+    </Stack>
   );
 }

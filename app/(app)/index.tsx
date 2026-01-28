@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, FlatList, RefreshControl, Text, StyleSheet, Alert, ScrollView } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { View, FlatList, RefreshControl, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { Stack, router } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 import { PostCard } from '../../components/PostCard';
 import { StoryCircle } from '../../components/StoryCircle';
+import { StoryViewer } from '../../components/StoryViewer';
 import { useAuth } from '../../context/AuthProvider';
-import { router } from 'expo-router';
+import { getStories } from '../../lib/social';
 
 export default function Feed() {
   const { session } = useAuth();
@@ -12,6 +15,8 @@ export default function Feed() {
   const [stories, setStories] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [viewerVisible, setViewerVisible] = useState(false);
+  const [viewerStartIndex, setViewerStartIndex] = useState(0);
 
   const fetchFeed = async () => {
     try {
@@ -21,50 +26,31 @@ export default function Feed() {
           id,
           content,
           image_url,
+          audio_url,
           created_at,
           author_id,
           profiles:author_id (
             full_name,
             avatar_url
-          )
+          ),
+          post_reactions(type, user_id),
+          post_comments(id)
         `)
         .order('created_at', { ascending: false })
         .limit(50);
-      
+
       if (error) throw error;
-      setPosts(data || []);
-      
-      // Fetch active stories (not expired)
-      const { data: storiesData } = await supabase
-        .from('stories')
-        .select(`
-          id,
-          image_url,
-          created_at,
-          user_id,
-          profiles:user_id (
-            full_name,
-            avatar_url
-          )
-        `)
-        .gt('expires_at', new Date().toISOString())
-        .order('created_at', { ascending: false });
-      
-      // Group stories by user
-      const userStories = storiesData?.reduce((acc: any, story: any) => {
-        if (!acc[story.user_id]) {
-          acc[story.user_id] = {
-            user_id: story.user_id,
-            full_name: story.profiles?.full_name,
-            avatar_url: story.profiles?.avatar_url,
-            stories: []
-          };
-        }
-        acc[story.user_id].stories.push(story);
-        return acc;
-      }, {});
-      
-      setStories(Object.values(userStories || {}));
+      setPosts(
+        (data || []).map((post) => ({
+          ...post,
+          post_comments: Array.isArray(post.post_comments) ? post.post_comments : [],
+          post_reactions: Array.isArray(post.post_reactions) ? post.post_reactions : [],
+        }))
+      );
+
+      // Fetch stories
+      const storiesData = await getStories();
+      setStories(storiesData);
     } catch (e) {
       console.error('Feed error:', e);
     } finally {
@@ -72,27 +58,8 @@ export default function Feed() {
     }
   };
 
-  const handleDelete = async (postId: string) => {
-    try {
-      const { error } = await supabase
-        .from('posts')
-        .delete()
-        .eq('id', postId);
-      
-      if (error) throw error;
-      
-      // Remove from local state
-      setPosts(prev => prev.filter(p => p.id !== postId));
-      Alert.alert('Success', 'Post deleted');
-    } catch (e: any) {
-      console.error('Delete error:', e);
-      Alert.alert('Error', 'Failed to delete post');
-    }
-  };
-
   useEffect(() => {
     fetchFeed();
-    
     // Real-time subscription for new posts
     const channel = supabase
       .channel('posts-feed')
@@ -104,11 +71,17 @@ export default function Feed() {
         setPosts((prev) => [payload.new as any, ...prev]);
       })
       .subscribe();
-    
     return () => { 
       supabase.removeChannel(channel); 
     };
   }, []);
+
+  // Refresh feed when screen is focused (e.g., after returning from comments)
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchFeed();
+    }, [])
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -125,8 +98,23 @@ export default function Feed() {
   }
 
   return (
-    <View style={styles.container}>
-      <FlatList
+    <>
+      <Stack.Screen
+        options={{
+          title: "Framez",
+          headerRight: () => (
+            <Pressable
+              onPress={() => router.push("/notifications" as any)}
+              style={{ paddingHorizontal: 12, paddingVertical: 6 }}
+            >
+              <Text style={{ fontSize: 18 }}>🔔</Text>
+            </Pressable>
+          ),
+        }}
+      />
+
+      <View style={styles.container}>
+        <FlatList
         data={posts}
         keyExtractor={(item) => item.id}
         refreshControl={
@@ -134,26 +122,31 @@ export default function Feed() {
         }
         ListHeaderComponent={
           <View style={styles.storiesContainer}>
-            <ScrollView 
-              horizontal 
+            <ScrollView
+              horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.storiesScroll}
             >
-              {/* Current user's story (with + button) */}
+              {/* Current user's story */}
               <StoryCircle
-                userName="You"
+                userName="Your Story"
+                userImage={session?.user?.user_metadata?.avatar_url}
                 isCurrentUser
-                onPress={() => router.push('/(app)/create-story')}
+                onPress={() => router.push('/create-story' as any)}
               />
-              
+
               {/* Other users' stories */}
-              {stories.slice(0, 8).map((story: any) => (
+              {stories.map((storyGroup: any, index: number) => (
                 <StoryCircle
-                  key={story.user_id}
-                  userName={story.full_name || 'User'}
-                  userImage={story.avatar_url}
-                  hasNewStory={true}
-                  onPress={() => Alert.alert('Story', `${story.full_name} has ${story.stories.length} story/stories`)}
+                  key={storyGroup.user_id}
+                  userName={storyGroup.full_name}
+                  userImage={storyGroup.avatar_url}
+                  thumbnailUrl={storyGroup.stories[0]?.image_url}
+                  hasViewed={false}
+                  onPress={() => {
+                    setViewerStartIndex(index);
+                    setViewerVisible(true);
+                  }}
                 />
               ))}
             </ScrollView>
@@ -167,18 +160,30 @@ export default function Feed() {
         }
         renderItem={({ item }) => (
           <PostCard
-            postId={item.id}
-            authorId={item.author_id}
+            id={item.id}
             authorName={item.profiles?.full_name || 'Unknown User'}
-            createdAt={item.created_at}
+            authorAvatar={item.profiles?.avatar_url}
+            timestamp={item.created_at}
             content={item.content}
             imageUrl={item.image_url}
+            audioUrl={item.audio_url}
             currentUserId={session?.user?.id}
-            onDelete={handleDelete}
+            reactions={item.post_reactions || []}
+            commentsCount={(item.post_comments || []).length}
+            onCommentPress={() => router.push(`/comments/${item.id}` as any)}
           />
         )}
       />
-    </View>
+
+      {/* Story Viewer Modal */}
+      <StoryViewer
+        visible={viewerVisible}
+        storyGroups={stories}
+        initialGroupIndex={viewerStartIndex}
+        onClose={() => setViewerVisible(false)}
+      />
+      </View>
+    </>
   );
 }
 

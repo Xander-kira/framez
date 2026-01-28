@@ -1,11 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, Alert, TouchableOpacity, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { supabase } from '../../lib/supabase';
+import * as DocumentPicker from 'expo-document-picker';
 import { router } from 'expo-router';
+import { createStory } from '../../lib/social';
 
 export default function CreateStory() {
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [audioUri, setAudioUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const pickImage = async () => {
@@ -15,19 +25,34 @@ export default function CreateStory() {
       return;
     }
 
-    const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All, // Allow images AND videos
       quality: 0.8,
       allowsEditing: true,
-      aspect: [9, 16], // Story aspect ratio
+      aspect: [9, 16],
+      videoMaxDuration: 15, // 15 seconds max for stories
     });
-    
-    if (!res.canceled && res.assets?.length) {
-      setImageUri(res.assets[0].uri);
+
+    if (!result.canceled && result.assets?.[0]) {
+      setImageUri(result.assets[0].uri);
     }
   };
 
-  const uploadStory = async () => {
+  const pickAudio = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'audio/*',
+      });
+
+      if (!result.canceled && result.assets?.[0]) {
+        setAudioUri(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Audio picker error:', error);
+    }
+  };
+
+  const handlePost = async () => {
     if (!imageUri) {
       Alert.alert('No image', 'Please select an image first.');
       return;
@@ -35,52 +60,13 @@ export default function CreateStory() {
 
     try {
       setLoading(true);
-      
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) throw new Error('Not authenticated');
-
-      // Upload image to storage
-      const ext = imageUri.split('.').pop() || 'jpg';
-      const path = `stories/${session.user.id}/${Date.now()}.${ext}`;
-      
-      const response = await fetch(imageUri);
-      const blob = await response.blob();
-      
-      const arrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as ArrayBuffer);
-        reader.onerror = reject;
-        reader.readAsArrayBuffer(blob);
-      });
-      
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('post-images')
-        .upload(path, arrayBuffer, { 
-          contentType: `image/${ext}`,
-          upsert: false 
-        });
-      
-      if (uploadError) throw uploadError;
-      
-      const { data: { publicUrl } } = supabase.storage
-        .from('post-images')
-        .getPublicUrl(uploadData.path);
-
-      // Insert story record
-      const { error: insertError } = await supabase.from('stories').insert({
-        user_id: session.user.id,
-        image_url: publicUrl,
-      });
-      
-      if (insertError) throw insertError;
-
+      await createStory(imageUri, audioUri);
       Alert.alert('Success! 🎉', 'Your story has been posted!', [
-        { text: 'OK', onPress: () => router.back() }
+        { text: 'OK', onPress: () => router.back() },
       ]);
-      
-    } catch (e: any) {
-      console.error('Story upload error:', e);
-      Alert.alert('Error', e.message || 'Failed to post story');
+    } catch (error: any) {
+      console.error('Story upload error:', error);
+      Alert.alert('Error', error.message || 'Failed to post story');
     } finally {
       setLoading(false);
     }
@@ -90,31 +76,36 @@ export default function CreateStory() {
     <View style={styles.container}>
       <Text style={styles.title}>Create Story</Text>
       <Text style={styles.subtitle}>Share a moment that disappears in 24 hours</Text>
-      
+
       {imageUri ? (
         <View style={styles.previewContainer}>
           <Image source={{ uri: imageUri }} style={styles.preview} />
-          <TouchableOpacity 
-            style={styles.changeButton}
-            onPress={pickImage}
-          >
+          <TouchableOpacity style={styles.changeButton} onPress={pickImage}>
             <Text style={styles.changeButtonText}>Change Photo</Text>
           </TouchableOpacity>
         </View>
       ) : (
-        <TouchableOpacity 
-          style={styles.pickButton}
-          onPress={pickImage}
-        >
+        <TouchableOpacity style={styles.pickButton} onPress={pickImage}>
           <Text style={styles.pickIcon}>📷</Text>
           <Text style={styles.pickButtonText}>Select Photo</Text>
         </TouchableOpacity>
       )}
-      
+
       {imageUri && (
-        <TouchableOpacity 
+        <TouchableOpacity
+          style={styles.audioButton}
+          onPress={pickAudio}
+        >
+          <Text style={styles.audioButtonText}>
+            {audioUri ? '✓ Audio Added' : '+ Add Audio (Optional)'}
+          </Text>
+        </TouchableOpacity>
+      )}
+
+      {imageUri && (
+        <TouchableOpacity
           style={[styles.postButton, loading && styles.postButtonDisabled]}
-          onPress={uploadStory}
+          onPress={handlePost}
           disabled={loading}
         >
           {loading ? (
@@ -186,6 +177,20 @@ const styles = StyleSheet.create({
   pickButtonText: {
     fontSize: 18,
     color: '#007AFF',
+    fontWeight: '600',
+  },
+  audioButton: {
+    backgroundColor: '#fff',
+    padding: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+  },
+  audioButtonText: {
+    color: '#007AFF',
+    fontSize: 16,
     fontWeight: '600',
   },
   postButton: {

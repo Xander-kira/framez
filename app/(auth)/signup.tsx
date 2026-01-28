@@ -195,15 +195,17 @@ export default function Signup() {
 
       <View style={styles.row}>
         <TextInput 
-          placeholder="First name" 
-          style={[styles.input, styles.halfInput]} 
+          placeholder="e.g. John" 
+          placeholderTextColor="#888"
+          style={[styles.input, styles.halfInput, { color: '#888' }]} 
           value={firstName} 
           onChangeText={setFirstName}
           autoCapitalize="words"
         />
         <TextInput 
-          placeholder="Last name" 
-          style={[styles.input, styles.halfInput]} 
+          placeholder="e.g. Doe" 
+          placeholderTextColor="#888"
+          style={[styles.input, styles.halfInput, { color: '#888' }]} 
           value={lastName} 
           onChangeText={setLastName}
           autoCapitalize="words"
@@ -211,27 +213,30 @@ export default function Signup() {
       </View>
 
       <TextInput 
-        placeholder="Username" 
-        style={styles.input} 
+        placeholder="e.g. johndoe" 
+        placeholderTextColor="#888"
+        style={[styles.input, { color: '#888' }]} 
         value={username} 
         onChangeText={(text) => setUsername(text.toLowerCase())}
         autoCapitalize="none"
       />
 
       <TextInput 
-        placeholder="Email" 
+        placeholder="e.g. johndoe@gmail.com" 
+        placeholderTextColor="#888"
         autoCapitalize="none" 
         keyboardType="email-address" 
-        style={styles.input} 
+        style={[styles.input, { color: '#888' }]} 
         value={email} 
         onChangeText={setEmail}
       />
 
       <View style={styles.passwordContainer}>
         <TextInput 
-          placeholder="Password" 
+          placeholder="e.g. mypassword123" 
+          placeholderTextColor="#888"
           secureTextEntry={!showPassword}
-          style={[styles.input, styles.passwordInput]} 
+          style={[styles.input, styles.passwordInput, { color: '#888' }]} 
           value={password} 
           onChangeText={setPassword}
         />
@@ -365,7 +370,7 @@ const styles = StyleSheet.create({
     padding: 14, 
     marginBottom: 12,
     fontSize: 16,
-    color: '#000', 
+    color: '#888', 
   },
   halfInput: {
     flex: 1,

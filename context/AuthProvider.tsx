@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import type { Session } from '@supabase/supabase-js';
 
 interface Ctx {
-  session: any;
+  session: Session | null;
   signOut: () => Promise<void>;
 }
 
@@ -10,7 +11,7 @@ const AuthContext = createContext<Ctx>({ session: null, signOut: async () => {} 
 export const useAuth = () => useContext(AuthContext);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
     // 1) Restore session on app start

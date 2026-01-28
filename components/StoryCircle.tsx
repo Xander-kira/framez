@@ -1,30 +1,56 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
-interface StoryCircleProps {
+type Props = {
   userName: string;
   userImage?: string;
-  hasNewStory?: boolean;
+  thumbnailUrl?: string;
+  hasViewed?: boolean;
   isCurrentUser?: boolean;
   onPress: () => void;
-}
+};
 
-export function StoryCircle({ userName, userImage, hasNewStory = true, isCurrentUser = false, onPress }: StoryCircleProps) {
+export function StoryCircle({ userName, userImage, thumbnailUrl, hasViewed, isCurrentUser, onPress }: Props) {
+  const displayImage = thumbnailUrl || userImage;
+  
   return (
-    <TouchableOpacity onPress={onPress} style={styles.container}>
-      <View style={[styles.circleWrapper, hasNewStory && styles.circleWrapperActive]}>
-        <View style={styles.circle}>
-          {userImage ? (
-            <Image source={{ uri: userImage }} style={styles.image} />
-          ) : (
-            <View style={styles.placeholder}>
-              <Text style={styles.placeholderText}>{userName[0].toUpperCase()}</Text>
+    <TouchableOpacity style={styles.container} onPress={onPress} activeOpacity={0.7}>
+      <View style={styles.circleWrapper}>
+        {!hasViewed ? (
+          <LinearGradient
+            colors={['#f09433', '#e6683c', '#dc2743', '#cc2366', '#bc1888']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.gradient}
+          >
+            <View style={styles.innerCircle}>
+              {displayImage ? (
+                <Image source={{ uri: displayImage }} style={styles.avatar} />
+              ) : (
+                <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                  <Text style={styles.avatarText}>{userName[0]?.toUpperCase()}</Text>
+                </View>
+              )}
             </View>
-          )}
-        </View>
+          </LinearGradient>
+        ) : (
+          <View style={[styles.gradient, styles.viewedGradient]}>
+            <View style={styles.innerCircle}>
+              {displayImage ? (
+                <Image source={{ uri: displayImage }} style={styles.avatar} />
+              ) : (
+                <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                  <Text style={styles.avatarText}>{userName[0]?.toUpperCase()}</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
+        
         {isCurrentUser && (
-          <View style={styles.addButton}>
-            <Text style={styles.addButtonText}>+</Text>
+          <View style={styles.plusBadge}>
+            <Text style={styles.plusText}>+</Text>
           </View>
         )}
       </View>
@@ -38,64 +64,71 @@ export function StoryCircle({ userName, userImage, hasNewStory = true, isCurrent
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    marginRight: 16,
-    width: 70,
+    marginRight: 12,
+    width: 72,
   },
   circleWrapper: {
-    padding: 3,
-    borderRadius: 40,
-    borderWidth: 2,
-    borderColor: '#E5E5EA',
+    position: 'relative',
   },
-  circleWrapperActive: {
-    borderColor: '#007AFF',
-    borderWidth: 3,
+  gradient: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    padding: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  circle: {
+  viewedGradient: {
+    backgroundColor: '#E0E0E0',
+  },
+  innerCircle: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    overflow: 'hidden',
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  placeholder: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#007AFF',
+    backgroundColor: '#fff',
+    padding: 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  placeholderText: {
-    color: '#fff',
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
+  avatarPlaceholder: {
+    backgroundColor: '#E0E0E0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: {
     fontSize: 24,
     fontWeight: 'bold',
+    color: '#666',
   },
-  addButton: {
+  plusBadge: {
     position: 'absolute',
     bottom: 0,
     right: 0,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     backgroundColor: '#007AFF',
-    alignItems: 'center',
-    justifyContent: 'center',
     borderWidth: 2,
     borderColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  addButtonText: {
+  plusText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: 'bold',
-    lineHeight: 20,
+    lineHeight: 14,
   },
   userName: {
-    fontSize: 12,
     marginTop: 4,
+    fontSize: 12,
+    color: '#262626',
     textAlign: 'center',
-    color: '#333',
+    width: '100%',
   },
 });

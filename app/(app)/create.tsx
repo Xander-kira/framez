@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { View, TextInput, Image, StyleSheet, Alert, ScrollView, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 import { supabase } from '../../lib/supabase';
 import { router } from 'expo-router';
 
 export default function Create() {
   const [content, setContent] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [audioUri, setAudioUri] = useState<string | null>(null);
+  const [audioName, setAudioName] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const pickImage = async () => {
@@ -18,14 +21,31 @@ export default function Create() {
     }
 
     const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ImagePicker.MediaTypeOptions.All, // Images AND videos
       quality: 0.7,
       allowsEditing: true,
       aspect: [4, 3],
+      videoMaxDuration: 30, // 30 seconds max
     });
     
     if (!res.canceled && res.assets?.length) {
       setImageUri(res.assets[0].uri);
+    }
+  };
+
+  const pickAudio = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'audio/*',
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled && result.assets?.[0]) {
+        setAudioUri(result.assets[0].uri);
+        setAudioName(result.assets[0].name);
+      }
+    } catch (error) {
+      console.error('Error picking audio:', error);
     }
   };
 
@@ -69,8 +89,8 @@ export default function Create() {
   };
 
   const onPost = async () => {
-    if (!content.trim() && !imageUri) {
-      Alert.alert('Empty post', 'Write something or choose an image.');
+    if (!content.trim() && !imageUri && !audioUri) {
+      Alert.alert('Empty post', 'Write something or choose media.');
       return;
     }
     
@@ -90,13 +110,19 @@ export default function Create() {
         image_url = await uploadImage(imageUri, session.user.id);
       }
 
+      let audio_url: string | null = null;
+      if (audioUri) {
+        audio_url = await uploadImage(audioUri, session.user.id); // Same upload function works for audio
+      }
+
       console.log('Attempting to insert post with author_id:', session.user.id);
       
       const { data, error } = await supabase.from('posts').insert({
-  author_id: session.user.id,
-  content: content.trim() || null,
-  image_url,
-      });
+        author_id: session.user.id,
+        content: content.trim() || null,
+        image_url,
+        audio_url,
+      }).select();
       
       console.log('Insert result:', { data, error });
       
@@ -142,16 +168,43 @@ export default function Create() {
           </TouchableOpacity>
         </View>
       )}
+
+      {audioUri && (
+        <View style={styles.audioContainer}>
+          <Text style={styles.audioText}>🎵 {audioName}</Text>
+          <TouchableOpacity 
+            style={styles.removeAudioButton}
+            onPress={() => {
+              setAudioUri(null);
+              setAudioName(null);
+            }}
+          >
+            <Text style={styles.removeText}>✕</Text>
+          </TouchableOpacity>
+        </View>
+      )}
       
-      <TouchableOpacity 
-        style={styles.pickButton}
-        onPress={pickImage}
-        disabled={loading}
-      >
-        <Text style={styles.pickButtonText}>
-          {imageUri ? '📷 Change Photo' : '📷 Add Photo'}
-        </Text>
-      </TouchableOpacity>
+      <View style={styles.buttonsRow}>
+        <TouchableOpacity 
+          style={styles.pickButton}
+          onPress={pickImage}
+          disabled={loading}
+        >
+          <Text style={styles.pickButtonText}>
+            {imageUri ? '📷 Change' : '📷 Photo/Video'}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={styles.pickButton}
+          onPress={pickAudio}
+          disabled={loading}
+        >
+          <Text style={styles.pickButtonText}>
+            {audioUri ? '🎵 Change' : '🎵 Add Music'}
+          </Text>
+        </TouchableOpacity>
+      </View>
       
       <TouchableOpacity 
         style={[styles.postButton, loading && styles.postButtonDisabled]}
@@ -201,6 +254,29 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#f0f0f0'
   },
+  audioContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  audioText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '600',
+  },
+  removeAudioButton: {
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   removeButton: {
     position: 'absolute',
     top: 8,
@@ -217,7 +293,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold'
   },
+  buttonsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
   pickButton: {
+    flex: 1,
     backgroundColor: '#f0f0f0',
     padding: 16,
     borderRadius: 12,
