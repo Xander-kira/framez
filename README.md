@@ -9,13 +9,11 @@ Framez is a full-featured social media app that allows users to create posts wit
 ## ✨ Features
 
 - **User Authentication**
-
   - Email/Password sign up and login
   - Persistent sessions (stay logged in after closing app)
   - Secure authentication with Supabase Auth
 
 - **Feed**
-
   - View all posts from all users in real-time
   - Pull-to-refresh functionality
   - Beautiful Instagram-like post cards
@@ -23,7 +21,6 @@ Framez is a full-featured social media app that allows users to create posts wit
   - Auto-updates when new posts are created
 
 - **Create Posts**
-
   - Write text-based posts
   - Upload images from your photo library
   - Image preview before posting
@@ -31,7 +28,6 @@ Framez is a full-featured social media app that allows users to create posts wit
   - Secure image storage with Supabase Storage
 
 - **User Profile**
-
   - View your profile information
   - See post count statistics
   - View all your posts
@@ -204,7 +200,7 @@ The app is deployed on Appetize.io for demo purposes:
 
 ## 🎥 Demo Video
 
-[Video Link: Insert video URL showing app features]
+[Demo Video (Google Drive)](https://drive.google.com/file/d/1fDTueRabv7qu5vLcDx2wQ6u4qBlvfWuy/view?usp=drive_link)
 
 ## 👤 Developer
 
@@ -223,9 +219,6 @@ This project is part of the HNG Internship program.
 - Supabase for the amazing backend platform
 - Expo team for the excellent development experience
 
-
-
-
 ## 📱 Framez Mobile App
 
 **A social app built with React Native (Expo) and Supabase.**
@@ -234,18 +227,21 @@ Users can sign up, log in, post images/texts, and view their profile posts.
 ---
 
 ### 🔗 Live Demo
+
 **Appetize Preview:**  
 👉 [Play on Appetize](https://appetize.io/app/b_s6t7vvioibrygzl4bn6nsbuwui)
 
 ---
 
 ### 🎥 Demo Video
+
 Watch the 2–3 minute walkthrough:  
-📹 [Demo on Google Drive](https://drive.google.com/file/d/1Ted5YP_L4w_nXqX03hbwCr7RsqUdfEH_/view?usp=drivesdk)
+📹 [Demo on Google Drive](https://drive.google.com/file/d/1fDTueRabv7qu5vLcDx2wQ6u4qBlvfWuy/view?usp=drive_link)
 
 ---
 
 ### 🧰 Tech Stack
+
 - **React Native (Expo)**
 - **Supabase (Auth + Database)**
 - **Expo Router**
@@ -254,6 +250,6 @@ Watch the 2–3 minute walkthrough:
 ---
 
 ### 🧑‍💻 Author
+
 **Sandra Analaba (Xander-kira)**  
 Frontend Developer — HNG Frontend Stage 4
-
